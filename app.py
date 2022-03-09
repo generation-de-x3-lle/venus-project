@@ -18,3 +18,13 @@ def extract_raw_data_from_csv():
     return raw_sales_data
 
 raw_sales_data = extract_raw_data_from_csv()
+
+def remove_sensitive_data(raw_data):
+    for item in raw_data:
+        del item['customer_name']
+        del item['card_number']
+    return raw_data
+
+cleaned_data = remove_sensitive_data(raw_sales_data)
+
+pp(cleaned_data)
