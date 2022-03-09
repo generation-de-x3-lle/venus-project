@@ -1,6 +1,8 @@
 
 version: "3.8"
 services:
+
+
   postgres:
     image: postgres:13.1
     healthcheck:
@@ -10,6 +12,7 @@ services:
       retries: 10
     restart: always
     environment:
+
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=password
       - APP_DB_USER=docker
