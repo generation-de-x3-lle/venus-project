@@ -2,10 +2,11 @@ import csv
 from pprint import pp
 
 def extract_raw_data_from_csv():
-    raw_sales_data = []
+    sales_data = []
 
     try:
-        with open('chesterfield_25-08-2021_09-00-00.csv','r') as file:
+        with open('../data/chesterfield_25-08-2021_09-00-00.csv','r') as file:
+
             field_names = ['order_date_time', 'branch_location','customer_name', 'order_items', 'total_payment', 'payment_type', 'card_number']
             reader = csv.DictReader(file, field_names)
             
