@@ -6,8 +6,8 @@ To set up PostgreSQL and Adminer run the command 'docker compose up -d' within .
 Design Schema
 ---
 
-|     clean_data(staging table)        |
-|:------------------------------------:|
+|     |clean_data(staging table)       |
+|:----|:------------------------------:|
 | PK  | id int NOT NULL AUTO_INCREMENT |
 | --- |:------------------------------:|
 |     | order_date_time DATETIME       |
@@ -16,7 +16,7 @@ Design Schema
 |     | total_payment DECIMAL(19,2)    |
 |     | payment_type VARCHAR(20)       |
 
-|                orders                      |
+|     |             orders                   |
 |:------------------------------------------:|
 | PK  | order_id int NOT NULL AUTO_INCREMENT |
 | --- |:------------------------------------:|
@@ -25,7 +25,7 @@ Design Schema
 |     | total_payment DECIMAL(19,2)          |
 |     | payment_type VARCHAR(20)             |
 
-|                products                      |
+|     |             products                   |
 |:--------------------------------------------:|
 | PK  | product_id int NOT NULL AUTO_INCREMENT |
 | --- |:--------------------------------------:|
@@ -33,7 +33,7 @@ Design Schema
 |     | flavour VARCHAR(20)                    |
 |     | price DECIMAL(19,2)                    |
 
-|                products_on_order                      |
+|     |             products_on_order                   |
 |:-----------------------------------------------------:|
 | PK  | product_on_order_id int NOT NULL AUTO_INCREMENT |
 | --- |:-----------------------------------------------:|
