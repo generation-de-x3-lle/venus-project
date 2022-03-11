@@ -1,11 +1,12 @@
 import csv
 from pprint import pp
+from datetime import datetime
 
 def extract_raw_data_from_csv():
     raw_sales_data = []
 
     try:
-        with open('data/chesterfield_25-08-2021_09-00-00.csv','r') as file:
+        with open('../data/chesterfield_25-08-2021_09-00-00.csv','r') as file:
 
             field_names = ['order_date_time', 'branch_location','customer_name', 'order_items', 'total_payment', 'payment_type', 'card_number']
             reader = csv.DictReader(file, field_names)
@@ -34,16 +35,18 @@ def normalise_data(cleaned_data):
   normalised_data_list = []
 
   #Splitting order_items into a list of items
-  for drink_item in cleaned_data:
-    drink_item['order_items'] = drink_item['order_items'].split(',')
+  for drink_order in cleaned_data:
+    drink_order['order_items'] = drink_order['order_items'].split(',')
     
+    #Change date-time to SQL format
+    drink_order['order_date_time'] = datetime.strptime(drink_order['order_date_time'], '%d/%m/%Y %H:%M').strftime('%Y-%m-%d %H:%M')
+
     #Creating a list of dictionaries for order_items
     order_items_list = []
-    for order_item in drink_item['order_items']:
+    for order_item in drink_order['order_items']:
       drink = order_item.rsplit("-", 1)[0]
       price = order_item.rsplit("-", 1)[1]
     
-      print(f"No flavour drink: {drink} and price: {price}")
       hot_drink = {
         "product_name" : drink,
         "product_price" : price
@@ -51,12 +54,11 @@ def normalise_data(cleaned_data):
 
       order_items_list.append(hot_drink)
       
-      drink_item['order_items'] = order_items_list
+      drink_order['order_items'] = order_items_list
 
-    normalised_data_list.append(drink_item)
+    normalised_data_list.append(drink_order)
 
   return normalised_data_list
 
 normalised_data = normalise_data(cleaned_sales_data)
 pp(normalised_data)
-

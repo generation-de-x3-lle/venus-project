@@ -32,3 +32,6 @@ def create_table(sql_statement,table_name):
         print(f'* {table_name.upper()} HAS BEEN CREATED SUCCESSFULLY *')
         print('*****************************************************\n') 
     connection.commit()  
+
+def load_data(sql_statement):
+    pass
