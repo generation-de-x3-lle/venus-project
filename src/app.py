@@ -44,11 +44,17 @@ def normalise_data(cleaned_data):
     #Creating a list of dictionaries for order_items
     order_items_list = []
     for order_item in drink_order['order_items']:
-      drink = order_item.rsplit("-", 1)[0]
-      price = order_item.rsplit("-", 1)[1]
-    
+      drink = order_item.split("-")[0]
+      if order_item.count("-") == 2:
+        flavour = order_item.split("-")[1]
+        price = order_item.split("-")[2]
+      elif order_item.count("-") == 1:
+        flavour = "No Flavour"
+        price = order_item.split("-")[1]
+
       hot_drink = {
         "product_name" : drink,
+        "flavour" : flavour,
         "product_price" : price
       }
 
@@ -61,4 +67,5 @@ def normalise_data(cleaned_data):
   return normalised_data_list
 
 normalised_data = normalise_data(cleaned_sales_data)
-pp(normalised_data)
+#pp(normalised_data)
+
