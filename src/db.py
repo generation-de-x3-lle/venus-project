@@ -32,3 +32,13 @@ def create_table(sql_statement,table_name):
         print(f'* {table_name.upper()} HAS BEEN CREATED SUCCESSFULLY *')
         print('*****************************************************\n') 
     connection.commit()  
+
+def load_data(sql_statement):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(sql_statement)
+    except Exception as e: 
+        print('\n*******************************************')
+        print('------------ FAILED TO LOAD TO TABLE(S): ===>', e)
+        print('*******************************************\n')    
+    connection.commit()
