@@ -34,11 +34,15 @@ def create_table(sql_statement,table_name):
     connection.commit()  
 
 def load_data(sql_statement):
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute(sql_statement)
-    except Exception as e: 
-        print('\n*******************************************')
-        print('------------ FAILED TO LOAD TO TABLE(S): ===>', e)
-        print('*******************************************\n')    
-    connection.commit()
+  id = 0
+  try:
+    cursor = connection.cursor()
+    cursor.execute(sql_statement)
+    id = cursor.fetchone()[0]
+  except Exception as e: 
+      print('\n*******************************************')
+      print('------------ FAILED TO LOAD TO TABLE(S): ===>', e)
+      print('*******************************************\n')    
+  connection.commit()
+  cursor.close()
+  return id

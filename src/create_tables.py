@@ -16,7 +16,7 @@ create_products_table = """
     CREATE TABLE IF NOT EXISTS products(
     product_id serial NOT NULL PRIMARY KEY,
     product varchar(20),
-    flavour_id varchar(20),
+    flavour varchar(20),
     price decimal(19,2)
     );
     """
@@ -27,7 +27,7 @@ create_orders_table = """
     order_date timestamp,
     branch_location varchar(50),
     total_payment decimal(19,2),
-    payment_type_id varchar(20)
+    payment_type varchar(20)
     );
     """
 
