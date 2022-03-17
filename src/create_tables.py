@@ -15,8 +15,8 @@ create_cleaned_data_table = """
 create_products_table = """
     CREATE TABLE IF NOT EXISTS products(
     product_id serial NOT NULL PRIMARY KEY,
-    product varchar(20),
-    flavour varchar(20),
+    product varchar(100),
+    flavour varchar(30),
     price decimal(19,2)
     );
     """

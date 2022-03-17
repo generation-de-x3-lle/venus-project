@@ -37,10 +37,12 @@ def load_data_into_db(product_data, order_data):
           VALUES ('{order_id}', '{product_id}')
           '''
           db.load_data(sql_prods_on_order)
-
+  
+  # pp(products_with_id_list)
   return orders_with_id_list
   
-pp(load_data_into_db(no_duplicate_products, cleaned_sales_data))
+load_data_into_db(no_duplicate_products, cleaned_sales_data)
+
 
 
 # select orders.order_date, orders.branch_location, orders.total_payment, orders.payment_type, products.product, products.flavour, products.price
