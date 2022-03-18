@@ -29,8 +29,8 @@ Design Schema
 |:----|:--------------------------------------:|
 | PK  | product_id int NOT NULL AUTO_INCREMENT |
 |-----|:--------------------------------------:|
-|     | product VARCHAR(20)                    |
-|     | flavour VARCHAR(20)                    |
+|     | product VARCHAR(100)                    |
+|     | flavour VARCHAR(30)                    |
 |     | price DECIMAL(19,2)                    |
 
 |     |             products_on_order                   |
@@ -40,3 +40,16 @@ Design Schema
 | FK  | order_id INT NOT NULL                           |
 | FK  | product_id INT NOT NULL                         |
 
+
+ ## Cloudformation ##
+
+A cloudformation template with MVP has been implemented using YAML for readability purposes Two resources are created which are AWS Lambda, and IAM role
+
+The first time CloudFormation stack is being created, the following lines in the .YML has to be commented out due to a bug: 
+
+   NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt LambdaFunction.Arn
+
+Then the CloudFormation stack has to be updated manually by running 'aws cloudformation update-stack' command.
