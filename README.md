@@ -43,4 +43,13 @@ Design Schema
 
  ## Cloudformation ##
 
-A cloudformation template with MVP has been implememted using YAML for readability purposes Two resources are created which are AWS Lambda, and IAM role
+A cloudformation template with MVP has been implemented using YAML for readability purposes Two resources are created which are AWS Lambda, and IAM role
+
+The first time CloudFormation stack is being created, the following lines in the .YML has to be commented out due to a bug: 
+
+   NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt LambdaFunction.Arn
+
+Then the CloudFormation stack has to be updated manually by running 'aws cloudformation update-stack' command.

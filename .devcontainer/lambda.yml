@@ -1,8 +1,18 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >
-  This CloudFormation template creates Lambda function, and  IAM roles
+  Template to deploy a lambda which is triggered by an S3 event.
+Parameters:
+  DeploymentBucket:
+    Type: String
+    Description: venus-bucket4
+  DeploymentPackageKey:
+    Type: String
+    Description: lambda.zip
+  BucketName:
+    Type: String
+    Description: venus-bucket4-test
+
 Resources:
-  
   LambdaFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -17,6 +27,8 @@ Resources:
             - sts:AssumeRole
       Path: "/"
       PermissionsBoundary: !Sub arn:aws:iam::${AWS::AccountId}:policy/ScopePermissions
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Policies:
       - PolicyName: LambdaLogsPolicy
         PolicyDocument:
@@ -30,17 +42,30 @@ Resources:
             Resource: '*'
 
   LambdaFunction:
+    Description: venus_project_lambda
     Type: AWS::Lambda::Function
     Properties:
       Runtime: python3.9
       Handler: index.handler
       Role: !GetAtt LambdaFunctionRole.Arn
       Code:
-        ZipFile: |
-          import logging
-          LOGGER = logging.getLogger()
-          LOGGER.setLevel(logging.INFO)
-          def handler(event, context):
-            LOGGER.info(f'Event structure: {event}')
+        S3Bucket: !Ref DeploymentBucket
+        S3Key: !Ref DeploymentPackageKey
 
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref BucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt LambdaFunction.Arn
+
+  S3BucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt S3Bucket.Arn
 
