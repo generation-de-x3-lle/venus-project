@@ -29,8 +29,8 @@ Design Schema
 |:----|:--------------------------------------:|
 | PK  | product_id int NOT NULL AUTO_INCREMENT |
 |-----|:--------------------------------------:|
-|     | product VARCHAR(20)                    |
-|     | flavour VARCHAR(20)                    |
+|     | product VARCHAR(100)                    |
+|     | flavour VARCHAR(30)                    |
 |     | price DECIMAL(19,2)                    |
 
 |     |             products_on_order                   |
