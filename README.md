@@ -40,3 +40,7 @@ Design Schema
 | FK  | order_id INT NOT NULL                           |
 | FK  | product_id INT NOT NULL                         |
 
+
+ ## Cloudformation ##
+
+A cloudformation template with MVP has been implememted using YAML for readability purposes Two resources are created which are AWS Lambda, and IAM role
