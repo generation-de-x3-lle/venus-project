@@ -44,9 +44,10 @@ Resources:
   LambdaFunction:
     Description: venus_project_lambda
     Type: AWS::Lambda::Function
-    Properties:
+    Properties: 
+      FunctionName: venus_project_lambda
       Runtime: python3.9
-      Handler: index.handler
+      Handler: etl_test.handler
       Role: !GetAtt LambdaFunctionRole.Arn
       Code:
         S3Bucket: !Ref DeploymentBucket
@@ -56,10 +57,10 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Properties:
       BucketName: !Ref BucketName
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:*
-            Function: !GetAtt LambdaFunction.Arn
+      # NotificationConfiguration:
+      #   LambdaConfigurations:
+      #     - Event: s3:ObjectCreated:*
+      #       Function: !GetAtt LambdaFunction.Arn
 
   S3BucketPermission:
     Type: AWS::Lambda::Permission
