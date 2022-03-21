@@ -51,17 +51,17 @@ Resources:
       Code:
         S3Bucket: !Ref DeploymentBucket
         S3Key: !Ref DeploymentPackageKey
-      Tags: 
-        - Name: venus-etl-lambda
+      # Tags: 
+      #   - Name: venus-etl-lambda
 
   S3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
       BucketName: !Ref BucketName
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:*
-            Function: !GetAtt LambdaFunction.Arn
+      # NotificationConfiguration:
+      #   LambdaConfigurations:
+      #     - Event: s3:ObjectCreated:*
+      #       Function: !GetAtt LambdaFunction.Arn
 
   S3BucketPermission:
     Type: AWS::Lambda::Permission
