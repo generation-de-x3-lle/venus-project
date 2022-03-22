@@ -46,7 +46,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties: 
       FunctionName: venus_project_lambda
-      Runtime: python3.9
+      Runtime: python3.8
       Handler: lambda_etl.handler
       Role: !GetAtt LambdaFunctionRole.Arn
       Code:
