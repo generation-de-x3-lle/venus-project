@@ -7,19 +7,19 @@ import boto3
 import psycopg2
 from dotenv import load_dotenv,find_dotenv
 
-# Load environment variables from .env file
-load_dotenv(find_dotenv())
-user = os.getenv("postgres_user")
-password = os.getenv("postgres_password")
-database = os.getenv("postgres_db")
-host = os.getenv("postgres_host")
+# # Load environment variables from .env file
+# load_dotenv(find_dotenv())
+# user = os.getenv("postgres_user")
+# password = os.getenv("postgres_password")
+# database = os.getenv("postgres_db")
+# host = os.getenv("postgres_host")
 
-connection = psycopg2.connect(
-    user = user, 
-    password = password, 
-    database= database, 
-    host = host, 
-)
+# connection = psycopg2.connect(
+#     user = user, 
+#     password = password, 
+#     database= database, 
+#     host = host, 
+# )
 
 def create_table(sql_statement,table_name):
     try:
@@ -64,6 +64,7 @@ def extract_raw_data_from_csv(filename):
     except Exception as err:
         print(f"An error occured: {str(err)}")
 
+    print(raw_sales_data)
     return raw_sales_data
 
 def remove_sensitive_data(raw_data):
@@ -191,4 +192,4 @@ def handler(event, context):
   normalised_data = normalise_data(cleaned_sales_data)
   no_duplicate_products = no_duplicate_products(normalised_data)
 
-  load_data_into_db(no_duplicate_products, cleaned_sales_data)
+  # load_data_into_db(no_duplicate_products, cleaned_sales_data)
