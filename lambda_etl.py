@@ -2,13 +2,52 @@ import os
 import csv
 from pprint import pp
 from datetime import datetime
-import db
 import logging
 import boto3
-LOGGER = logging.getLogger()
-LOGGER.setLevel(logging.INFO)
+import psycopg2
+from dotenv import load_dotenv,find_dotenv
 
+# Load environment variables from .env file
+load_dotenv(find_dotenv())
+user = os.getenv("postgres_user")
+password = os.getenv("postgres_password")
+database = os.getenv("postgres_db")
+host = os.getenv("postgres_host")
 
+connection = psycopg2.connect(
+    user = user, 
+    password = password, 
+    database= database, 
+    host = host, 
+)
+
+def create_table(sql_statement,table_name):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(sql_statement)
+    except Exception as e: 
+        print('\n*******************************************')
+        print('------------ FAILED TO CREATE TABLE: ===>', e)
+        print('*******************************************\n')
+    else:
+        print('\n*****************************************************')
+        print(f'* {table_name.upper()} HAS BEEN CREATED SUCCESSFULLY *')
+        print('*****************************************************\n') 
+    connection.commit()  
+
+def load_data(sql_statement):
+  id = 0
+  try:
+    cursor = connection.cursor()
+    cursor.execute(sql_statement)
+    id = cursor.fetchone()[0]
+  except Exception as e: 
+      print('\n*******************************************')
+      print('------------ FAILED TO LOAD TO TABLE(S): ===>', e)
+      print('*******************************************\n')    
+  connection.commit()
+  cursor.close()
+  return id
 
 def extract_raw_data_from_csv(filename):
     raw_sales_data = []
@@ -135,8 +174,9 @@ def load_data_into_db(product_data, order_data):
   # pp(products_with_id_list)
   return orders_with_id_list
   
-
 def handler(event, context):
+  LOGGER = logging.getLogger()
+  LOGGER.setLevel(logging.INFO)
   LOGGER.info(f'Event structure: {event}')
 
   bucket = 'de-x3-lle-venus'
