@@ -184,7 +184,7 @@ def handler(event, context):
   filename = 'chesterfield_16-03-2022_09-00-00.csv'
 
   s3 = boto3.resource('s3')
-  s3.meta.client.download_file(bucket, f'/2022/3/16/{filename}', f'/tmp/{filename}')
+  s3.meta.client.download_file(bucket, f'2022/3/16/{filename}', f'tmp/{filename}')
   os.chdir('/tmp')
   
   raw_sales_data = extract_raw_data_from_csv(filename)
