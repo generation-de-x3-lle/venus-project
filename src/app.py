@@ -1,5 +1,4 @@
 import csv
-from curses import keyname
 from pprint import pp
 from datetime import datetime
 
