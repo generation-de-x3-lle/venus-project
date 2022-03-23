@@ -49,18 +49,18 @@ def load_data(sql_statement):
   cursor.close()
   return id
 
-def extract_raw_data_from_csv(filename):
+def extract_raw_data_from_csv(key, filename):
     raw_sales_data = []
 
     try:
-        with open(f'/tmp/{filename}','r') as file:
-
-            field_names = ['order_date_time', 'branch_location','customer_name', 'order_items', 'total_payment', 'payment_type', 'card_number']
-            reader = csv.DictReader(file, field_names)
+        lines = filename['Body'].read().decode('utf-8').splitlines(True)
+        field_names = ['order_date_time', 'branch_location','customer_name', 'order_items', 'total_payment', 'payment_type', 'card_number']
+        reader = csv.DictReader(lines, field_names)
             
-            raw_sales_data = []
-            for row in reader:
-                raw_sales_data.append(row)
+        raw_sales_data = []
+        for row in reader:
+            raw_sales_data.append(row)
+
     except Exception as err:
         print(f"An error occured: {str(err)}")
 
@@ -72,7 +72,6 @@ def remove_sensitive_data(raw_data):
         del item['customer_name']
         del item['card_number']
     return raw_data
-
 
 def remove_whitespace_from_dict_values_in_list(list_of_dicts):
   clean_data = []
@@ -181,15 +180,16 @@ def handler(event, context):
   LOGGER.info(f'Event structure: {event}')
 
   bucket = 'de-x3-lle-venus'
-  filename = 'chesterfield_16-03-2022_09-00-00.csv'
+  #filename = 'chesterfield_16-03-2022_09-00-00.csv'
 
-  s3 = boto3.resource('s3')
-  s3.meta.client.download_file(bucket, f'2022/3/16/{filename}', f'tmp/{filename}')
-  os.chdir('/tmp')
+  s3 = boto3.client('s3')
+  key = '2022/3/16/chesterfield_16-03-2022_09-00-00.csv'
+  filename = s3.get_object(Bucket=bucket, Key=key)
+
   
-  raw_sales_data = extract_raw_data_from_csv(filename)
-  cleaned_sales_data = remove_sensitive_data(raw_sales_data)
-  normalised_data = normalise_data(cleaned_sales_data)
-  no_duplicate_products = no_duplicate_products(normalised_data)
+  raw_sales_data = extract_raw_data_from_csv(key, filename)
+  # cleaned_sales_data = remove_sensitive_data(raw_sales_data)
+  # normalised_data = normalise_data(cleaned_sales_data)
+  # no_duplicate_products = no_duplicate_products(normalised_data)
 
   # load_data_into_db(no_duplicate_products, cleaned_sales_data)

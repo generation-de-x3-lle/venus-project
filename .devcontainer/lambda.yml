@@ -8,9 +8,9 @@ Parameters:
   DeploymentPackageKey:
     Type: String
     Description: lambda.zip
-  # BucketName:
-  #   Type: String
-  #   Description: de-x3-lle-venus
+  BucketName:
+    Type: String
+    Description: arn:aws:s3:::de-x3-lle-venus
 
 Resources:
   LambdaFunctionRole:
@@ -68,5 +68,5 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref LambdaFunction
       Principal: s3.amazonaws.com
-      #SourceArn: !GetAtt S3Bucket.Arn
+      SourceArn: !Ref BucketName
 
