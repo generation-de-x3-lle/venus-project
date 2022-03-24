@@ -8,18 +8,20 @@ import psycopg2
 from dotenv import load_dotenv,find_dotenv
 
 # # Load environment variables from .env file
-# load_dotenv(find_dotenv())
-# user = os.getenv("postgres_user")
-# password = os.getenv("postgres_password")
-# database = os.getenv("postgres_db")
-# host = os.getenv("postgres_host")
+load_dotenv(find_dotenv())
+user = os.getenv("user")
+password = os.getenv("password")
+database = os.getenv("database")
+host = os.getenv("host")
+port = os.getenv("port")
 
-# connection = psycopg2.connect(
-#     user = user, 
-#     password = password, 
-#     database= database, 
-#     host = host, 
-# )
+connection = psycopg2.connect(
+    user = user, 
+    password = password, 
+    database= database, 
+    host = host, 
+    port = port
+)
 
 def create_table(sql_statement,table_name):
     try:
@@ -144,7 +146,7 @@ def load_data_into_db(product_data, order_data):
     ('{product['product_name']}','{product['flavour']}','{product['product_price']}')
     RETURNING product_id
     '''
-    product_id = db.load_data(sql_product)
+    product_id = load_data(sql_product)
     product['product_id'] = product_id
 
     products_with_id_list.append(product) 
@@ -156,7 +158,7 @@ def load_data_into_db(product_data, order_data):
     VALUES ('{order['order_date_time']}','{order['branch_location']}','{order['total_payment']}','{order['payment_type']}')
     RETURNING order_id
     '''
-    order_id = db.load_data(sql_order)
+    order_id = load_data(sql_order)
     order['order_id'] = order_id
     orders_with_id_list.append(order)
 
@@ -169,7 +171,7 @@ def load_data_into_db(product_data, order_data):
           INSERT INTO products_on_order (order_id, product_id)
           VALUES ('{order_id}', '{product_id}')
           '''
-          db.load_data(sql_prods_on_order)
+          load_data(sql_prods_on_order)
   
   # pp(products_with_id_list)
   return orders_with_id_list
@@ -188,8 +190,8 @@ def handler(event, context):
 
   
   raw_sales_data = extract_raw_data_from_csv(key, filename)
-  # cleaned_sales_data = remove_sensitive_data(raw_sales_data)
-  # normalised_data = normalise_data(cleaned_sales_data)
-  # no_duplicate_products = no_duplicate_products(normalised_data)
+  cleaned_sales_data = remove_sensitive_data(raw_sales_data)
+  normalised_data = normalise_data(cleaned_sales_data)
+  no_duplicate_products = no_duplicate_products(normalised_data)
 
-  # load_data_into_db(no_duplicate_products, cleaned_sales_data)
+  load_data_into_db(no_duplicate_products, cleaned_sales_data)
