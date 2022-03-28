@@ -33,9 +33,8 @@ def load_data(sql_statement):
     cursor.execute(sql_statement)
     id = cursor.fetchone()[0]
   except Exception as e: 
-      print('\n*******************************************')
-      print('------------ FAILED TO LOAD TO TABLE(S): ===>', e)
-      print('*******************************************\n')    
+    LOGGER.info(f'Error when uploading to table: {e}')
+   
   connection.commit()
   cursor.close()
   return id
@@ -142,7 +141,7 @@ def load_data_into_db(product_data, order_data, load_data):
 
     products_with_id[f"{product['product_name']} - {product['flavour']}"] = product_id
 
-  LOGGER.info(f'Event structure: {products_with_id}')
+  LOGGER.info(f'Products with IDs: {products_with_id}')
 
 
   orders_with_id_list = []
@@ -171,7 +170,7 @@ def load_data_into_db(product_data, order_data, load_data):
         '''
         load_data(sql_prods_on_order)
 
-  LOGGER.info(f'Event structure: {orders_with_id_list}')
+  LOGGER.info(f'Orders with IDs list: {orders_with_id_list}')
         
   return orders_with_id_list
   
