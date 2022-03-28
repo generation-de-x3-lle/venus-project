@@ -33,8 +33,9 @@ def load_data(sql_statement):
     cursor.execute(sql_statement)
     id = cursor.fetchone()[0]
   except Exception as e: 
-    LOGGER.info(f'Error when uploading to table: {e}')
-   
+    if e.args[0] != "no results to fetch":
+      LOGGER.error(f'Error when uploading to table: {e}, SQL Statement: {sql_statement}')
+
   connection.commit()
   cursor.close()
   return id
