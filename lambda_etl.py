@@ -183,7 +183,6 @@ def handler(event, context):
   key = '2022/3/16/chesterfield_16-03-2022_09-00-00.csv'
   filename = s3.get_object(Bucket=bucket, Key=key)
 
-  
   raw_sales_data = extract_raw_data_from_csv(key, filename)
   cleaned_sales_data = remove_sensitive_data(raw_sales_data)
   normalised_data = normalise_data(cleaned_sales_data)

@@ -4,13 +4,13 @@ Description: >
 Parameters:
   DeploymentBucket:
     Type: String
-    Description: venus-bucket4
+    Description: de-x3-lle-venus-deployment-bucket
   DeploymentPackageKey:
     Type: String
     Description: lambda.zip
   BucketName:
     Type: String
-    Description: venus-bucket4-test
+    Description: arn:aws:s3:::de-x3-lle-venus
 
 Resources:
   LambdaFunctionRole:
@@ -53,14 +53,14 @@ Resources:
         S3Bucket: !Ref DeploymentBucket
         S3Key: !Ref DeploymentPackageKey
 
-  S3Bucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: !Ref BucketName
+  # S3Bucket:
+  #   Type: 'AWS::S3::Bucket'
+  #   Properties:
+  #     BucketName: !Ref BucketName
       # NotificationConfiguration:
       #   LambdaConfigurations:
-      #     - Event: s3:ObjectCreated:*
-      #       Function: !GetAtt LambdaFunction.Arn
+      #     # - Event: s3:ObjectCreated:*
+      #     Function: !GetAtt LambdaFunction.Arn
 
   S3BucketPermission:
     Type: AWS::Lambda::Permission
@@ -68,5 +68,5 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref LambdaFunction
       Principal: s3.amazonaws.com
-      SourceArn: !GetAtt S3Bucket.Arn
+      SourceArn: !Ref BucketName
 
