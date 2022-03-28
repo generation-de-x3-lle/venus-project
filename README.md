@@ -53,3 +53,14 @@ The first time CloudFormation stack is being created, the following lines in the
             Function: !GetAtt LambdaFunction.Arn
 
 Then the CloudFormation stack has to be updated manually by running 'aws cloudformation update-stack' command.
+
+## Grafana Infrastructure ##
+
+The Grafana instance has been setup inorder to help visualise our application and data.
+
+- We created EC2 Instance and added a security group to the EC2.
+- Opened SSH (22) and default Grafana port (3000) to the internet (0.0.0.0/0) in the security group.
+- Mapped port 80 to 3000
+- installed docker in the EC2
+- installed grafana image in docker and run it
+- Created users with usernames and passwords
