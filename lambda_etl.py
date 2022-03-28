@@ -8,32 +8,20 @@ import psycopg2
 from dotenv import load_dotenv,find_dotenv
 
 # # Load environment variables from .env file
-# load_dotenv(find_dotenv())
-# user = os.getenv("postgres_user")
-# password = os.getenv("postgres_password")
-# database = os.getenv("postgres_db")
-# host = os.getenv("postgres_host")
+load_dotenv(find_dotenv())
+user = os.getenv("user")
+password = os.getenv("password")
+database = os.getenv("database")
+host = os.getenv("host")
+port = os.getenv("port")
 
-# connection = psycopg2.connect(
-#     user = user, 
-#     password = password, 
-#     database= database, 
-#     host = host, 
-# )
-
-def create_table(sql_statement,table_name):
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute(sql_statement)
-    except Exception as e: 
-        print('\n*******************************************')
-        print('------------ FAILED TO CREATE TABLE: ===>', e)
-        print('*******************************************\n')
-    else:
-        print('\n*****************************************************')
-        print(f'* {table_name.upper()} HAS BEEN CREATED SUCCESSFULLY *')
-        print('*****************************************************\n') 
-    connection.commit()  
+connection = psycopg2.connect(
+    user = user, 
+    password = password, 
+    database= database, 
+    host = host, 
+    port = port
+)
 
 def load_data(sql_statement):
   id = 0
@@ -49,22 +37,22 @@ def load_data(sql_statement):
   cursor.close()
   return id
 
-def extract_raw_data_from_csv(filename):
+def extract_raw_data_from_csv(key, filename):
     raw_sales_data = []
 
     try:
-        with open(f'/tmp/{filename}','r') as file:
-
-            field_names = ['order_date_time', 'branch_location','customer_name', 'order_items', 'total_payment', 'payment_type', 'card_number']
-            reader = csv.DictReader(file, field_names)
+        lines = filename['Body'].read().decode('utf-8').splitlines(True)
+        field_names = ['order_date_time', 'branch_location','customer_name', 'order_items', 'total_payment', 'payment_type', 'card_number']
+        reader = csv.DictReader(lines, field_names)
             
-            raw_sales_data = []
-            for row in reader:
-                raw_sales_data.append(row)
+        raw_sales_data = []
+        for row in reader:
+            raw_sales_data.append(row)
+
     except Exception as err:
         print(f"An error occured: {str(err)}")
 
-    print(raw_sales_data)
+    # print(raw_sales_data)
     return raw_sales_data
 
 def remove_sensitive_data(raw_data):
@@ -72,7 +60,6 @@ def remove_sensitive_data(raw_data):
         del item['customer_name']
         del item['card_number']
     return raw_data
-
 
 def remove_whitespace_from_dict_values_in_list(list_of_dicts):
   clean_data = []
@@ -136,30 +123,37 @@ def no_duplicate_products(data):
 
 #LOAD.PY
 
-def load_data_into_db(product_data, order_data):
+def load_data_into_db(product_data, order_data, load_data):
   products_with_id_list = []
   for product in product_data:
     sql_product = f'''
-    INSERT INTO products(product,flavour,price)
+    INSERT INTO venus_schema.products(product,flavour,price)
     VALUES
-    ('{product['product_name']}','{product['flavour']}','{product['product_price']}')
-    RETURNING product_id
+    ('{product['product_name']}','{product['flavour']}','{product['product_price']}');
+
+    SELECT MAX(product_id) FROM venus_schema.products;
     '''
-    product_id = db.load_data(sql_product)
+
+    # print(sql_product)
+    product_id = load_data(sql_product)
     product['product_id'] = product_id
 
     products_with_id_list.append(product) 
+    print(products_with_id_list)
 
   orders_with_id_list = []
   for order in order_data:
     sql_order = f'''
-    INSERT INTO orders (order_date, branch_location, total_payment, payment_type)
-    VALUES ('{order['order_date_time']}','{order['branch_location']}','{order['total_payment']}','{order['payment_type']}')
-    RETURNING order_id
+    INSERT INTO venus_schema.orders (order_date, branch_location, total_payment, payment_type)
+    VALUES ('{order['order_date_time']}','{order['branch_location']}','{order['total_payment']}','{order['payment_type']}');
+
+    SELECT MAX(order_id) FROM venus_schema.orders;
     '''
-    order_id = db.load_data(sql_order)
+    
+    order_id = load_data(sql_order)
     order['order_id'] = order_id
     orders_with_id_list.append(order)
+    
 
     for order_item in order['order_items']:
       for item_with_id in products_with_id_list:
@@ -167,12 +161,14 @@ def load_data_into_db(product_data, order_data):
           product_id = item_with_id['product_id']
 
           sql_prods_on_order = f'''
-          INSERT INTO products_on_order (order_id, product_id)
-          VALUES ('{order_id}', '{product_id}')
+          INSERT INTO venus_schema.products_on_orders (order_id, product_id)
+          VALUES ('{order_id}', '{product_id}');
+
+          SELECT MAX(products_on_orders_id) FROM venus_schema.products_on_orders;
           '''
-          db.load_data(sql_prods_on_order)
+          load_data(sql_prods_on_order)
   
-  # pp(products_with_id_list)
+  pp(products_with_id_list)
   return orders_with_id_list
   
 def handler(event, context):
@@ -181,15 +177,16 @@ def handler(event, context):
   LOGGER.info(f'Event structure: {event}')
 
   bucket = 'de-x3-lle-venus'
-  filename = 'chesterfield_16-03-2022_09-00-00.csv'
+  #filename = 'chesterfield_16-03-2022_09-00-00.csv'
 
-  s3 = boto3.resource('s3')
-  s3.meta.client.download_file(bucket, f'/2022/3/16/{filename}', f'/tmp/{filename}')
-  os.chdir('/tmp')
+  s3 = boto3.client('s3')
+  key = '2022/3/16/chesterfield_16-03-2022_09-00-00.csv'
+  filename = s3.get_object(Bucket=bucket, Key=key)
+
   
-  raw_sales_data = extract_raw_data_from_csv(filename)
+  raw_sales_data = extract_raw_data_from_csv(key, filename)
   cleaned_sales_data = remove_sensitive_data(raw_sales_data)
   normalised_data = normalise_data(cleaned_sales_data)
-  no_duplicate_products = no_duplicate_products(normalised_data)
+  cleaned_products = no_duplicate_products(normalised_data)
 
-  # load_data_into_db(no_duplicate_products, cleaned_sales_data)
+  load_data_into_db(cleaned_products, cleaned_sales_data, load_data)
