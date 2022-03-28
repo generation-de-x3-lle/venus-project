@@ -23,6 +23,9 @@ connection = psycopg2.connect(
     port = port
 )
 
+LOGGER = logging.getLogger()
+LOGGER.setLevel(logging.INFO)
+
 def load_data(sql_statement):
   id = 0
   try:
@@ -30,9 +33,9 @@ def load_data(sql_statement):
     cursor.execute(sql_statement)
     id = cursor.fetchone()[0]
   except Exception as e: 
-      print('\n*******************************************')
-      print('------------ FAILED TO LOAD TO TABLE(S): ===>', e)
-      print('*******************************************\n')    
+    if e.args[0] != "no results to fetch":
+      LOGGER.error(f'Error when uploading to table: {e}, SQL Statement: {sql_statement}')
+
   connection.commit()
   cursor.close()
   return id
@@ -124,7 +127,7 @@ def no_duplicate_products(data):
 #LOAD.PY
 
 def load_data_into_db(product_data, order_data, load_data):
-  products_with_id_list = []
+  products_with_id = {}
   for product in product_data:
     sql_product = f'''
     INSERT INTO venus_schema.products(product,flavour,price)
@@ -133,13 +136,14 @@ def load_data_into_db(product_data, order_data, load_data):
 
     SELECT MAX(product_id) FROM venus_schema.products;
     '''
-
-    # print(sql_product)
+    
     product_id = load_data(sql_product)
     product['product_id'] = product_id
 
-    products_with_id_list.append(product) 
-    print(products_with_id_list)
+    products_with_id[f"{product['product_name']} - {product['flavour']}"] = product_id
+
+  LOGGER.info(f'Products with IDs: {products_with_id}')
+
 
   orders_with_id_list = []
   for order in order_data:
@@ -154,26 +158,24 @@ def load_data_into_db(product_data, order_data, load_data):
     order['order_id'] = order_id
     orders_with_id_list.append(order)
     
-
     for order_item in order['order_items']:
-      for item_with_id in products_with_id_list:
-        if order_item['product_name'] == item_with_id['product_name'] and order_item['flavour'] == item_with_id['flavour']:
-          product_id = item_with_id['product_id']
+      combined_key = f"{order_item['product_name']} - {order_item['flavour']}"
+      if combined_key in products_with_id:
 
-          sql_prods_on_order = f'''
-          INSERT INTO venus_schema.products_on_orders (order_id, product_id)
-          VALUES ('{order_id}', '{product_id}');
+        product_id = products_with_id[combined_key]
 
-          SELECT MAX(products_on_orders_id) FROM venus_schema.products_on_orders;
-          '''
-          load_data(sql_prods_on_order)
-  
-  pp(products_with_id_list)
+        sql_prods_on_order = f'''
+        INSERT INTO venus_schema.products_on_orders (order_id, product_id)
+        VALUES ('{order_id}', '{product_id}');
+
+        '''
+        load_data(sql_prods_on_order)
+
+  LOGGER.info(f'Orders with IDs list: {orders_with_id_list}')
+        
   return orders_with_id_list
   
 def handler(event, context):
-  LOGGER = logging.getLogger()
-  LOGGER.setLevel(logging.INFO)
   LOGGER.info(f'Event structure: {event}')
 
   bucket = 'de-x3-lle-venus'
