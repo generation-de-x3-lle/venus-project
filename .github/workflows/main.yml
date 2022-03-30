@@ -16,6 +16,11 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code from main branch
         uses: actions/checkout@v2
+      # set up python
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+         python-version: 3.8
 
       # Configure AWS Credential
       - name: Configure AWS Credentials
@@ -31,7 +36,6 @@ jobs:
         with:
           name: venus-project-cloudformation-stack
           template: .devcontainer/lambda.yml
-
           no-fail-on-empty-changeset: "1"
           parameter-overrides: "DeploymentBucket='de-x3-lle-venus-deployment-bucket',DeploymentPackageKey='lambda.zip',BucketName='de-x3-lle-venus' "
         
