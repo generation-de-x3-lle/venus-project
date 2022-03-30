@@ -33,8 +33,8 @@ jobs:
           template: .devcontainer/lambda.yml
 
           no-fail-on-empty-changeset: "1"
-          #parameter-overrides: " ParameterKey=DeploymentBucket,ParameterValue=de-x3-lle-venus-deployment-bucket ParameterKey=DeploymentPackageKey,ParameterValue=lambda.zip ParameterKey=BucketName,ParameterValue=de-x3-lle-venus"
-          parameter-overrides: "MyParam1=myValue,MyParam2=${{ secrets.MY_SECRET_VALUE }}"
+          parameter-overrides: " 'lambda.zip','de-x3-lle-venus-deployment-bucket','de-x3-lle-venus-deployment-bucket'"
+          #parameter-overrides: "MyParam1=myValue,MyParam2=${{ secrets.MY_SECRET_VALUE }}"
          #inputs:
             #DeploymentBucket:
               #Type: String
