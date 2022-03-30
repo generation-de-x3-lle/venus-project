@@ -32,13 +32,13 @@ jobs:
           name: venus-project-cloudformation-stack
           template: .devcontainer/lambda.yml
           no-fail-on-empty-changeset: "1"
-          inputs:
-            DeploymentBucket:
-              Type: String
-              default: 'de-x3-lle-venus-deployment-bucket'
-            DeploymentPackageKey:
-              Type: String
-              default: 'lambda.zip'
+          #inputs:
+            #DeploymentBucket:
+              #Type: String
+              #default: 'de-x3-lle-venus-deployment-bucket'
+            #DeploymentPackageKey:
+              #Type: String
+              #default: 'lambda.zip'
           #parameter-overrides: "EC2InstanceType=t2.micr
 
 
