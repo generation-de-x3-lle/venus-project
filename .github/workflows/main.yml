@@ -21,6 +21,21 @@ jobs:
         uses: actions/setup-python@v2
         with:
          python-version: 3.8
+      - name: listing all files
+        run: ls ltr
+      - name: Zipping our file
+        uses: actions/checkout@v2
+      - run: composer install --ansi --no-progress --no-interaction --prefer-dist
+      - uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r lambda.zip lambda
+      - uses: actions/upload-artifact@v2
+        with:
+          name: lambda.zip
+        # copy file to s3
+      - name: copy cloudformation templete to S3
+        run: >
+         aws --profile learner-profile s3 cp .devcontainer/lambda.yml s3://de-x3-lle-venus-deployment-bucket
 
       # Configure AWS Credential
       - name: Configure AWS Credentials
