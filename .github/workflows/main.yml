@@ -21,8 +21,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
          python-version: 3.8
-#       - name: listing all files
-#         run: ls ltr
+      - name: Make artifact directory
+      - run: mkdir -p ./artifacts/${{ github.repository }}
+
       - uses: montudor/action-zip@v1
         with:
           args: zip -qq -r lambda.zip lambda_etl.py
