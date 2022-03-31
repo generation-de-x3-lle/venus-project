@@ -31,8 +31,8 @@ jobs:
           aws-region: eu-west-1
       - name: Update the stack
         run: |
-         aws cloudformation --profile learner-profile update-stack --stack-name venus-project-cloudformation-stack --template-url https://de-x3-lle-venus-deployment-bucket.s3.eu-west-1.amazonaws.com/lambda.yml --region eu-west-1 --parameters DeploymentBucket=de-x3-lle-venus-deployment-bucket, DeploymentPackageKey=lambda.zip, BucketName=
-         de-x3-lle-venus --capabilities CAPABILITY_IAM
+         aws cloudformation --profile learner-profile update-stack --stack-name venus-project-cloudformation-stack --template-url https://de-x3-lle-venus-deployment-bucket.s3.eu-west-1.amazonaws.com/lambda.yml --region eu-west-1 --parameters DeploymentBucket='de-x3-lle-venus-deployment-bucket', DeploymentPackageKey='lambda.zip', BucketName=
+         'de-x3-lle-venus' --capabilities CAPABILITY_IAM
 
 #       # Deploy to AWS CloudFormation
 #       - name: Deploy to AWS CloudFormation
