@@ -27,9 +27,11 @@ jobs:
         with:
           args: zip -qq -r lambda.zip lambda_etl.py
       - uses: actions/upload-artifact@v2
-#           run: >
+#            run: >
+#               s3://de-x3-lle-venus-deployment-bucket/lambda.zip
 #             aws lambda --profile learner-profile --region eu-west-1 update-function-code --function-name venus_project_lambda --zip-file fileb://lambda.zip
-#         with:
+        with:
+           name: s3://de-x3-lle-venus-deployment-bucket/lambda.zip
         #name: lambda.zip
       - name: Push Zip to S3
         uses: jakejarvis/s3-sync-action@v0.3.1
