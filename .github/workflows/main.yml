@@ -27,8 +27,11 @@ jobs:
         with:
           args: zip -qq -r lambda.zip lambda_etl.py
       - uses: actions/upload-artifact@v2
+         
         with:
           name: lambda.zip
+          run: >
+            aws lambda --profile learner-profile --region eu-west-1 update-function-code --function-name venus_project_lambda --zip-file fileb://lambda.zip
         # copy file to s3
       - name: copy cloudformation templete to S3
         run: >
