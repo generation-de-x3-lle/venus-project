@@ -29,19 +29,19 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_SECRET_ACCESS_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
-      - name: Update the stack
-        run: |
-         aws cloudformation --profile learner-profile update-stack --stack-name venus-project-cloudformation-stack --template-url https://de-x3-lle-venus-deployment-bucket.s3.eu-west-1.amazonaws.com/lambda.yml --region eu-west-1 --parameters DeploymentBucket='de-x3-lle-venus-deployment-bucket', DeploymentPackageKey='lambda.zip', BucketName=
-         'de-x3-lle-venus' --capabilities CAPABILITY_IAM
+#       - name: Update the stack
+#         run: |
+#          aws cloudformation --profile learner-profile update-stack --stack-name venus-project-cloudformation-stack --template-url https://de-x3-lle-venus-deployment-bucket.s3.eu-west-1.amazonaws.com/lambda.yml --region eu-west-1 --parameters DeploymentBucket='de-x3-lle-venus-deployment-bucket', DeploymentPackageKey='lambda.zip', BucketName=
+#          'de-x3-lle-venus' --capabilities CAPABILITY_IAM
 
-#       # Deploy to AWS CloudFormation
-#       - name: Deploy to AWS CloudFormation
-#         uses: aws-actions/aws-cloudformation-github-deploy@v1
-# #         with:
-#           name: venus-project-cloudformation-stack
-#           template: .devcontainer/lambda.yml
-#           no-fail-on-empty-changeset: "1"
-#           parameter-overrides: "DeploymentBucket='de-x3-lle-venus-deployment-bucket',DeploymentPackageKey='lambda.zip',BucketName='de-x3-lle-venus' "
+      # Deploy to AWS CloudFormation
+      - name: Deploy to AWS CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: venus-project-cloudformation-stack
+          template: .devcontainer/lambda.yml
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: "DeploymentBucket=de-x3-lle-venus-deployment-bucket,DeploymentPackageKey=lambda.zip,BucketName=de-x3-lle-venus "
         
           
 
