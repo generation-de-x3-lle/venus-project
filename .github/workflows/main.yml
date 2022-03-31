@@ -27,17 +27,31 @@ jobs:
         with:
           args: zip -qq -r lambda.zip lambda_etl.py
       - uses: actions/upload-artifact@v2
-         
-        with:
-          name: lambda.zip
-          run: >
-            aws lambda --profile learner-profile --region eu-west-1 update-function-code --function-name venus_project_lambda --zip-file fileb://lambda.zip
-        # copy file to s3
+#           run: >
+#             aws lambda --profile learner-profile --region eu-west-1 update-function-code --function-name venus_project_lambda --zip-file fileb://lambda.zip
+#         with:
+        #name: lambda.zip
+      - name: Push Zip to S3
+        uses: jakejarvis/s3-sync-action@v0.3.1
+        env:
+          AWS_REGION: 'eu-west-1'
+          AWS_S3_BUCKET: 'de-x3-lle-venus-deployment-bucket'
+          aws-access-key-id: ${{ secrets.AWS_SECRET_ACCESS_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       
+       
+       
+       
+       
+       # copy file to s3
       - name: copy cloudformation templete to S3
         run: >
          aws --profile learner-profile s3 cp .devcontainer/lambda.yml s3://de-x3-lle-venus-deployment-bucket
 
-      # Configure AWS Credential
+     
+     
+     
+     # Configure AWS Credential
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
