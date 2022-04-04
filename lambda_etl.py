@@ -6,6 +6,7 @@ import logging
 import boto3
 import psycopg2
 from dotenv import load_dotenv,find_dotenv
+from hashlib import sha256
 
 # # Load environment variables from .env file
 load_dotenv(find_dotenv())
@@ -26,26 +27,30 @@ connection = psycopg2.connect(
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
+def hash_id(s: str):
+    hash = str(int(sha256(s.encode('utf-8')).hexdigest(), 16))[:10]
+    return hash
+
 def read_data(sql_statement):
   try:
-    cursor = connection.cursor()
-    cursor.execute(sql_statement)
+    with connection:
+      with connection.cursor() as cursor:
+        cursor.execute(sql_statement)
+        rows = cursor.fetchall()
   except Exception as e: 
       LOGGER.error(f'Error when reading from table: {e}, SQL Statement: {sql_statement}')
-  rows = cursor.fetchall()
-  cursor.close()
-
+  
   return rows
 
 def load_data(sql_statement):
   try:
-    cursor = connection.cursor()
-    cursor.execute(sql_statement)
+    with connection:
+      with connection.cursor() as cursor:
+        cursor.execute(sql_statement)
+        connection.commit()
   except Exception as e: 
     LOGGER.error(f'Error when uploading to table: {e}, SQL Statement: {sql_statement}')
 
-  connection.commit()
-  cursor.close()
 
 def extract_raw_data_from_csv(key, filename):
     raw_sales_data = []
@@ -142,17 +147,20 @@ def load_data_into_db(product_data, order_data, load_data):
   list_of_product_hashes = []
 
   for row in product_id_rows:
-    list_of_product_hashes.append(row)
+    list_of_product_hashes.append(row[0])
+    print(f'THIS IS THE TYPE OF HASHED ID READ FROM DB: {type(row[0])}')
 
   for product in product_data:
     product_hash_combination = f"{product['product_name']} - {product['flavour']}"
-    product_id = hash(product_hash_combination)
+    product_id = hash_id(product_hash_combination)
+    print(f'THIS IS THE TYPE OF HASHED ID CREATED IN THE APP: {type(product_id)}')
 
     if product_id not in list_of_product_hashes:
+      list_of_product_hashes.append(product_id)
       sql_product = f'''
-      INSERT INTO venus_schema.products_test(product_id, product,flavour,price)
+      INSERT INTO venus_schema.products_test(product_id, product, flavour, price)
       VALUES
-      ('{product_id}, '{product['product_name']}','{product['flavour']}','{product['product_price']}');
+      ('{product_id}', '{product['product_name']}','{product['flavour']}','{product['product_price']}');
       '''
 
       load_data(sql_product)
@@ -168,26 +176,25 @@ def load_data_into_db(product_data, order_data, load_data):
   order_id_rows = read_data(sql_read_order_id)
 
   for row in order_id_rows:
-    list_of_order_hashes.append(row)
+    list_of_order_hashes.append(row[0])
 
   #Upload orders if ID is unique
   for order in order_data:
-    order_hash_combination = f"{order['order_date_time']} - {order['branch_location']} - {order['total_payment']}"
-    order_id = hash(order_hash_combination)
+    order_hash_combination = f"{order['order_date_time']} - {order['branch_location']}"
+    order_id = hash_id(order_hash_combination)
 
     if order_id not in list_of_order_hashes:
-
+      list_of_order_hashes.append(order_id)
       sql_order = f'''
       INSERT INTO venus_schema.orders_test (order_id, order_date, branch_location, total_payment, payment_type)
-      VALUES ({order_id}, '{order['order_date_time']}','{order['branch_location']}','{order['total_payment']}','{order['payment_type']}');
-
+      VALUES ('{order_id}', '{order['order_date_time']}','{order['branch_location']}','{order['total_payment']}','{order['payment_type']}');
       '''
       
       load_data(sql_order)
 
       for order_item in order['order_items']:
         combined_key = f"{order_item['product_name']} - {order_item['flavour']}"
-        order_item_id = hash(combined_key)
+        order_item_id = hash_id(combined_key)
 
         if order_item_id in list_of_product_hashes:
 
@@ -199,7 +206,7 @@ def load_data_into_db(product_data, order_data, load_data):
           load_data(sql_prods_on_order)
 
   LOGGER.info(f'Hashed unique order IDs: {order_id}')
-  connection.close()      
+
  
 def handler(event, context):
   LOGGER.info(f'Event structure: {event}')
