@@ -26,19 +26,26 @@ connection = psycopg2.connect(
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
-def load_data(sql_statement):
-  id = 0
+def read_data(sql_statement):
   try:
     cursor = connection.cursor()
     cursor.execute(sql_statement)
-    id = cursor.fetchone()[0]
   except Exception as e: 
-    if e.args[0] != "no results to fetch":
-      LOGGER.error(f'Error when uploading to table: {e}, SQL Statement: {sql_statement}')
+      LOGGER.error(f'Error when reading from table: {e}, SQL Statement: {sql_statement}')
+  rows = cursor.fetchall()
+  cursor.close()
+
+  return rows
+
+def load_data(sql_statement):
+  try:
+    cursor = connection.cursor()
+    cursor.execute(sql_statement)
+  except Exception as e: 
+    LOGGER.error(f'Error when uploading to table: {e}, SQL Statement: {sql_statement}')
 
   connection.commit()
   cursor.close()
-  return id
 
 def extract_raw_data_from_csv(key, filename):
     raw_sales_data = []
@@ -108,8 +115,6 @@ def normalise_data(cleaned_data):
 
   return normalised_data_list
 
-# pp(normalised_data)
-
 def no_duplicate_products(data):
   all_products = []
   for order in data:
@@ -127,54 +132,75 @@ def no_duplicate_products(data):
 #LOAD.PY
 
 def load_data_into_db(product_data, order_data, load_data):
-  products_with_id = {}
-  for product in product_data:
-    sql_product = f'''
-    INSERT INTO venus_schema.products(product,flavour,price)
-    VALUES
-    ('{product['product_name']}','{product['flavour']}','{product['product_price']}');
-
-    SELECT MAX(product_id) FROM venus_schema.products;
-    '''
-    
-    product_id = load_data(sql_product)
-    product['product_id'] = product_id
-
-    products_with_id[f"{product['product_name']} - {product['flavour']}"] = product_id
-
-  LOGGER.info(f'Products with IDs: {products_with_id}')
-
-
-  orders_with_id_list = []
-  for order in order_data:
-    sql_order = f'''
-    INSERT INTO venus_schema.orders (order_date, branch_location, total_payment, payment_type)
-    VALUES ('{order['order_date_time']}','{order['branch_location']}','{order['total_payment']}','{order['payment_type']}');
-
-    SELECT MAX(order_id) FROM venus_schema.orders;
-    '''
-    
-    order_id = load_data(sql_order)
-    order['order_id'] = order_id
-    orders_with_id_list.append(order)
-    
-    for order_item in order['order_items']:
-      combined_key = f"{order_item['product_name']} - {order_item['flavour']}"
-      if combined_key in products_with_id:
-
-        product_id = products_with_id[combined_key]
-
-        sql_prods_on_order = f'''
-        INSERT INTO venus_schema.products_on_orders (order_id, product_id)
-        VALUES ('{order_id}', '{product_id}');
-
-        '''
-        load_data(sql_prods_on_order)
-
-  LOGGER.info(f'Orders with IDs list: {orders_with_id_list}')
-        
-  return orders_with_id_list
+  #Reading products from product table
+  sql_read_product_id = f'''
+  SELECT (product_id)
+  FROM venus_schema.products_test
+  '''
+  product_id_rows = read_data(sql_read_product_id)
   
+  list_of_product_hashes = []
+
+  for row in product_id_rows:
+    list_of_product_hashes.append(row)
+
+  for product in product_data:
+    product_hash_combination = f"{product['product_name']} - {product['flavour']}"
+    product_id = hash(product_hash_combination)
+
+    if product_id not in list_of_product_hashes:
+      sql_product = f'''
+      INSERT INTO venus_schema.products_test(product_id, product,flavour,price)
+      VALUES
+      ('{product_id}, '{product['product_name']}','{product['flavour']}','{product['product_price']}');
+      '''
+
+      load_data(sql_product)
+
+  LOGGER.info(f'Hashed unique product IDs: {product_id}')
+
+  #Reading order IDs
+  list_of_order_hashes = []
+  sql_read_order_id = f'''
+  SELECT (order_id)
+  FROM venus_schema.orders_test
+  '''
+  order_id_rows = read_data(sql_read_order_id)
+
+  for row in order_id_rows:
+    list_of_order_hashes.append(row)
+
+  #Upload orders if ID is unique
+  for order in order_data:
+    order_hash_combination = f"{order['order_date_time']} - {order['branch_location']} - {order['total_payment']}"
+    order_id = hash(order_hash_combination)
+
+    if order_id not in list_of_order_hashes:
+
+      sql_order = f'''
+      INSERT INTO venus_schema.orders_test (order_id, order_date, branch_location, total_payment, payment_type)
+      VALUES ({order_id}, '{order['order_date_time']}','{order['branch_location']}','{order['total_payment']}','{order['payment_type']}');
+
+      '''
+      
+      load_data(sql_order)
+
+      for order_item in order['order_items']:
+        combined_key = f"{order_item['product_name']} - {order_item['flavour']}"
+        order_item_id = hash(combined_key)
+
+        if order_item_id in list_of_product_hashes:
+
+          sql_prods_on_order = f'''
+          INSERT INTO venus_schema.products_on_orders_test (order_id, product_id)
+          VALUES ('{order_id}', '{order_item_id}');
+
+          '''
+          load_data(sql_prods_on_order)
+
+  LOGGER.info(f'Hashed unique order IDs: {order_id}')
+  connection.close()      
+ 
 def handler(event, context):
   LOGGER.info(f'Event structure: {event}')
 
