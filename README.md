@@ -65,4 +65,4 @@ The Grafana instance has been setup inorder to help visualise our application an
 - installed grafana image in docker and run it
 - Created users with usernames and passwords
 - Used SQL to code various tables in Grafana to display relevant Data Visuals
-- Used Grafana's built in visuals to turn data tables into engaging visuals
+- Used Grafana's built in visuals to turn data tables into engaging visuals.
