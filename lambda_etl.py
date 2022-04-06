@@ -65,12 +65,11 @@ def extract_raw_data_from_csv(file_lines):
         raw_sales_data = []
         for row in reader:
             raw_sales_data.append(row)
-        LOGGER.info(f"Raw sales data: {raw_sales_data}")
+        # LOGGER.info(f"Raw sales data: {raw_sales_data}")
 
     except Exception as err:
         LOGGER.error(f"An error occured: {str(err)}")
 
-    # print(raw_sales_data)
     return raw_sales_data
 
 def remove_sensitive_data(raw_data):
@@ -140,27 +139,25 @@ def no_duplicate_products(data):
 
 def load_data_into_db(product_data, order_data, load_data):
   #Reading products from product table
-  sql_read_product_id = f'''
-  SELECT (product_id)
-  FROM venus_schema.products_test
-  '''
-  product_id_rows = read_data(sql_read_product_id)
-  
-  list_of_product_hashes = []
-
-  for row in product_id_rows:
-    list_of_product_hashes.append(row[0])
-    # print(f'THIS IS THE TYPE OF HASHED ID READ FROM DB: {type(row[0])}')
 
   for product in product_data:
     product_hash_combination = f"{product['product_name']} - {product['flavour']}"
     product_id = hash_id(product_hash_combination)
-    # print(f'THIS IS THE TYPE OF HASHED ID CREATED IN THE APP: {type(product_id)}')
 
-    if product_id not in list_of_product_hashes:
-      list_of_product_hashes.append(product_id)
+    sql_read_product_id = f'''
+    SELECT (product_id)
+    FROM venus_schema.products
+    WHERE product_id='{product_id}'
+    '''
+    LOGGER.info(f'sql_read_product_id: {sql_read_product_id}')
+
+    product_id_rows = read_data(sql_read_product_id)
+
+    LOGGER.info(f'product_id reading from database: {product_id_rows}')
+   
+    if product_id_rows == []:
       sql_product = f'''
-      INSERT INTO venus_schema.products_test(product_id, product, flavour, price)
+      INSERT INTO venus_schema.products(product_id, product, flavour, price)
       VALUES
       ('{product_id}', '{product['product_name']}','{product['flavour']}','{product['product_price']}');
       '''
@@ -173,7 +170,7 @@ def load_data_into_db(product_data, order_data, load_data):
   list_of_order_hashes = []
   sql_read_order_id = f'''
   SELECT (order_id)
-  FROM venus_schema.orders_test
+  FROM venus_schema.orders
   '''
   order_id_rows = read_data(sql_read_order_id)
 
@@ -188,7 +185,7 @@ def load_data_into_db(product_data, order_data, load_data):
     if order_id not in list_of_order_hashes:
       list_of_order_hashes.append(order_id)
       sql_order = f'''
-      INSERT INTO venus_schema.orders_test (order_id, order_date, branch_location, total_payment, payment_type)
+      INSERT INTO venus_schema.orders (order_id, order_date, branch_location, total_payment, payment_type)
       VALUES ('{order_id}', '{order['order_date_time']}','{order['branch_location']}','{order['total_payment']}','{order['payment_type']}');
       '''
       
@@ -198,14 +195,14 @@ def load_data_into_db(product_data, order_data, load_data):
         combined_key = f"{order_item['product_name']} - {order_item['flavour']}"
         order_item_id = hash_id(combined_key)
 
-        if order_item_id in list_of_product_hashes:
+        # if order_item_id in list_of_product_hashes:
 
-          sql_prods_on_order = f'''
-          INSERT INTO venus_schema.products_on_orders_test (order_id, product_id)
-          VALUES ('{order_id}', '{order_item_id}');
+        sql_prods_on_order = f'''
+        INSERT INTO venus_schema.products_on_orders (order_id, product_id)
+        VALUES ('{order_id}', '{order_item_id}');
 
-          '''
-          load_data(sql_prods_on_order)
+        '''
+        load_data(sql_prods_on_order)
 
   LOGGER.info(f'Hashed unique order IDs: {order_id}')
 
@@ -218,10 +215,9 @@ def handler(event, context):
       file_obj = event["Records"][0]
       bucketname = str(file_obj["s3"]["bucket"]["name"])
       filename = str(file_obj["s3"]["object"]["key"])
-      print("Filename: ", filename)
+      LOGGER.info(f"Filename: {filename}")
       fileObj = s3.get_object(Bucket=bucketname, Key=filename)
       lines = fileObj["Body"].read().decode("utf-8").splitlines(True)
-      print(lines)
 
       raw_sales_data = extract_raw_data_from_csv(lines)
       cleaned_sales_data = remove_sensitive_data(raw_sales_data)
@@ -231,10 +227,4 @@ def handler(event, context):
       load_data_into_db(cleaned_products, cleaned_sales_data, load_data)
 
   return "Thanks"
-
-  # bucket = 'de-x3-lle-venus'
-  # #filename = 'chesterfield_16-03-2022_09-00-00.csv'
-
-  
-  # key = '2022/3/16/chesterfield_16-03-2022_09-00-00.csv'
 
